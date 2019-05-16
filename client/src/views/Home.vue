@@ -39,7 +39,7 @@
       <div class="row mb-5">
         <div class="col-8 bg-dark" style="height:200px">
         <!-- ROOM LIST -->
-        <!-- LALALALALALA -->
+        {{roomList}}
         <!-- ROOM LIST -->
         </div>
         <div class="col bg-dark ml-1">
@@ -51,7 +51,7 @@
                 <input v-model="roomName" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Name Room">
               </div>
                 <label for="exampleInputEmail1" style="color:#FEFDFD">Total Player</label>
-              <select v-model="players" class="form-control form-control-sm">
+              <select v-model="totalPlayer" class="form-control form-control-sm">
                   <option>1 vs 1</option>
                   <option>2 vs 2</option>
                   <option>3 vs 3</option>
@@ -74,13 +74,17 @@
 <script>
 // @ is an alias to /src
 import Header from '../components/Header'
+import db from "../firebase/firebase.js"
+import { functions } from 'firebase';
 export default {
   name: 'home',
   data () {
     return {
+      username: '',
       roomName : null,
-      players : '',
-      feedback: null
+      totalPlayer: '',
+      feedback: null,
+      roomList : []
     }
   },
   components: {
@@ -88,15 +92,46 @@ export default {
   },
   methods: {
     createRoom() {
-      
       if(this.roomName) {
         this.feedback = ''
+        db.collection("room").add({
+          name: this.roomName,
+          players: [`${this.username}`],
+          totalPlayer: this.totalPlayer,
+          createdAt: new Date()
+        })
+        .then(docRef=>{
+          console.log('berhasil');
+          this.roomName = null
+          this.totalPlayer = null
+          
+          console.log('ini documents id :' ,docRef.id )
+        })
+        .catch(err =>{
+          console.log(err,'eror nya nih')
+        })
       }else {
         this.feedback = 'room name needed!'
       }
-      console.log(this.roomName)
-      console.log(this.players)
+     
+    },
+    fetchRoomList() {
+      db.collection('room').orderBy('createdAt').onSnapshot((querySnapshot)=>{
+        let allRooms = []
+        querySnapshot.forEach(doc =>{
+          allRooms.push(doc.data())
+        })
+        this.roomList = allRooms
+        // console.log(allRooms,' ini all rooms dari firestorenya');
+       
+      })
     }
+  },
+  created () {
+    var rug = require('random-username-generator');
+    var new_username = rug.generate();
+    this.username = new_username
+    this.fetchRoomList()
   }
 }
 </script>
