@@ -5,11 +5,11 @@
 </template>
 <script>
 export default {
-  created () {
-    if (localStorage.hasOwnProperty('id')) {
-      this.$store.commit('storeUser')
-    }
-    this.$store.dispatch('getPlayersInRoom')
-  }
+  // created () {
+  //   if (localStorage.hasOwnProperty('id')) {
+  //     this.$store.commit('storeUser')
+  //   }
+  //   this.$store.dispatch('getPlayersInRoom')
+  // }
 }
 </script>
