@@ -34,10 +34,10 @@
 </template>
 
 <script>
-import db from "@/db.js";
+import db from '@/db.js'
 export default {
-  name: "Room",
-  data() {
+  name: 'Room',
+  data () {
     return {
       // hasJoined: false,
       redTeam: [],
@@ -48,30 +48,30 @@ export default {
       // players: doc.data().players,//['siapa','nanya']
       // roomId: doc.id,
       // kuotaRoom: doc.data().kuotaRoom
-    };
+    }
   },
-  props: ["room", "username"],
-  mounted() {
+  props: ['room', 'username'],
+  mounted () {
 
   },
   methods: {
-    changeSide(team) {
-      if (team === "blue") {
+    changeSide (team) {
+      if (team === 'blue') {
         this.redTeam = this.redTeam.filter(
           username => this.username !== username
-        );
-        if(this.blueTeam.indexOf(this.username) === -1){
-          this.blueTeam.push(this.username);
+        )
+        if (this.blueTeam.indexOf(this.username) === -1) {
+          this.blueTeam.push(this.username)
         }
       } else {
         this.blueTeam = this.blueTeam.filter(
           username => this.username !== username
-        );
-        if(this.blueTeam.indexOf(this.username) === -1){
-          this.redTeam.push(this.username);
+        )
+        if (this.blueTeam.indexOf(this.username) === -1) {
+          this.redTeam.push(this.username)
         }
       }
     }
   }
-};
+}
 </script>

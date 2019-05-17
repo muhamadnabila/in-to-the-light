@@ -11,10 +11,10 @@ export default new Vuex.Store({
     rooms: {}
   },
   mutations: {
-    storeUser(state){
+    storeUser (state) {
       state.id = localStorage.getItem('id')
       state.username = localStorage.getItem('username')
-      console.log(state.id,state.username)
+      console.log(state.id, state.username)
     },
     pushPlayersInRoom (state, players) {
       // /*
@@ -48,7 +48,7 @@ export default new Vuex.Store({
       })
       state.rooms = temp
       console.log(state.rooms)
-    },
+    }
     // changeSides (state, newColl) {
     //   db.collection('players').doc(state.id/* `MhmBodnfRveEZLPE7ItZ` */)
     //     .set({
@@ -64,24 +64,24 @@ export default new Vuex.Store({
   },
   actions: {
     // getPlayersInRoom (context) {
-      // db.collection('players').onSnapshot(
-      //   snapshot => {
-      //     console.log(snapshot)
-      //     let temp = []
-      //     for (let i = 0; i < snapshot.docs.length; i++) {
-      //       temp.push(snapshot.docs[i].data())
-      //     }
-      //     console.log(temp)
-      //     context.commit('pushPlayersInRoom', temp)
-      //   },
-      //   error => {
-      //     console.log(error)
-      //   }
-      // )
+    // db.collection('players').onSnapshot(
+    //   snapshot => {
+    //     console.log(snapshot)
+    //     let temp = []
+    //     for (let i = 0; i < snapshot.docs.length; i++) {
+    //       temp.push(snapshot.docs[i].data())
+    //     }
+    //     console.log(temp)
+    //     context.commit('pushPlayersInRoom', temp)
+    //   },
+    //   error => {
+    //     console.log(error)
+    //   }
+    // )
     // },
     // changeSides (context, newColl) {
     //   context.commit('changeSides', newColl)
     // }
-  },
-  
+  }
+
 })
