@@ -44,7 +44,6 @@
 </template>
 
 <script>
-console.log("trigerred");
 import db from "@/db.js";
 export default {
   name: "Room",
@@ -70,14 +69,19 @@ export default {
     db.collection("room")
       .doc(this.$route.params.id)
       .onSnapshot(doc => {
+        console.log("blue :"+doc.data().blue)
+        console.log("red :"+doc.data().red)
+        console.log("players : "+doc.data().red)
         this.createdAt = doc.data().createdAt;
         this.name = doc.data().name;
         this.totalPlayer = doc.data().totalPlayer;
         this.players = doc.data().players;
         this.roomId = doc.id;
         this.kuotaRoom = doc.data().kuotaRoom;
-        this.blueTeam = doc.data().blue;
-        this.redTeam = doc.data().red;
+        if(doc.data().blue)
+          this.blueTeam = doc.data().blue;
+        if(doc.data().red)
+          this.redTeam = doc.data().red;
         if(this.players.length == this.kuotaRoom){
           this.startGame = true
         }
@@ -115,7 +119,10 @@ export default {
             kuotaRoom : this.kuotaRoom,
             blue : this.blueTeam,
             red : this.redTeam,
-          });
+          })
+          .then(()=>{
+            console.log('team changed')
+          })
     }
   }
 };

@@ -146,7 +146,7 @@ export default {
           red: []
         })
           .then(docRef => {
-            console.log(docRef.id)
+            // console.log(docRef.id)
             this.roomName = null
             this.totalPlayer = null
             this.$router.push(`/room/${docRef.id}`)
@@ -185,14 +185,15 @@ export default {
             name: doc.data().name,
             players: doc.data().players,
             totalPlayer: doc.data().totalPlayer,
-            kuotaRoom: doc.data().kuotaRoom
+            kuotaRoom: doc.data().kuotaRoom,
+            blue: doc.data().blue,
+            red: doc.data().red
           }
           newRoom.players.push(this.username)
-          return db.collection('room').doc(roomSelected.roomId).set({
-            ...newRoom
-          })
+          console.log(newRoom)
+          return db.collection('room').doc(roomSelected.roomId).set(newRoom)
         })
-        .then(doc => {
+        .then(() => {
           console.log('berhasil join room')
           this.$router.push(`/room/${roomSelected.roomId}`)
         })
