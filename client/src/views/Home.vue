@@ -55,7 +55,7 @@
                   <p>{{ room.players.length }}</p>
               </div>
               <div class="col md-1" v-show="checkKuota(room)">
-                  <a v-on:click.prevent="joinRoom(room)" href="#"><i class="fas fa-sign-in-alt"></i></a>
+                  <a :href="`/room/${room.roomId}`" v-on:click.prevent="joinRoom(room)"><i class="fas fa-sign-in-alt"></i></a>
               </div>
               <div class="col md-1" v-show="!checkKuota(room)">
                   <p>full</p>
@@ -65,10 +65,10 @@
         </div>
         <!-- ROOM LIST -->
         </div>
-        <div class="col bg-dark ml-1">
+        <div class="col ml-1">
         <!-- CREATE ROOM -->
           <div class="row p-2">
-            <form style="width:100%" v-on:submit.prevent="createRoom">
+            <form class ="bg-dark p-2" style="width:100%" v-on:submit.prevent="createRoom">
               <div class="form-group">
                 <label for="exampleInputEmail1" style="color:#FEFDFD" >Room</label>
                 <input v-model="roomName" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Room Name">
@@ -88,7 +88,7 @@
           </div>
         </div>
       </div>
-       <Room/>
+       
     </div>
   </div>
 </template>
@@ -117,10 +117,10 @@ export default {
   },
   methods: {
     checkKuota (room) {
-      console.log('================')
-      console.log(room.players)
-      console.log(room.kuotaRoom)
-      console.log('===================')
+      // console.log('================')
+      // console.log(room.players)
+      // console.log(room.kuotaRoom)
+      // console.log('===================')
       if (room.players.length >= room.kuotaRoom) {
         return false
       } else { return true }
@@ -141,11 +141,15 @@ export default {
           players: [`${this.username}`],
           totalPlayer: this.totalPlayer,
           createdAt: new Date(),
-          kuotaRoom: kuotaRoom
+          kuotaRoom: kuotaRoom,
+          blue: [],
+          red: []
         })
           .then(docRef => {
+            console.log(docRef.id)
             this.roomName = null
             this.totalPlayer = null
+            this.$router.push(`/room/${docRef.id}`)
           })
           .catch(err => {
             console.log(err, 'eror nya nih')
@@ -173,6 +177,7 @@ export default {
       })
     },
     joinRoom (roomSelected) {
+      console.log('join rom')
       db.collection('room').doc(roomSelected.roomId).get()
         .then(doc => {
           let newRoom = {
@@ -189,6 +194,7 @@ export default {
         })
         .then(doc => {
           console.log('berhasil join room')
+          this.$router.push(`/room/${roomSelected.roomId}`)
         })
         .catch(err => {
           console.log(err)
@@ -197,7 +203,8 @@ export default {
   },
   created () {
     var rug = require('random-username-generator')
-    this.username = rug.generate()
+    localStorage.setItem('username',rug.generate())
+    this.username = localStorage.getItem('username')
     this.fetchRoomList()
     db.collection('user').add({
       username: this.username
