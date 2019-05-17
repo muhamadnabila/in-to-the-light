@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid">
-  <Header />
+
     <div class="container mt-4" style="width:70%">
       <h2>Community Activity</h2>
       <h4 style="color:#525252">Public chat</h4>
@@ -65,7 +65,7 @@
                   <p>{{ room.players.length }}</p>
               </div>
               <div class="col md-1" v-show="checkKuota(room)">
-                  <a v-on:click.prevent="joinRoom(room)" href="#"><i class="fas fa-sign-in-alt"></i></a>
+                  <a :href="`/room/${room.roomId}`" v-on:click.prevent="joinRoom(room)"><i class="fas fa-sign-in-alt"></i></a>
               </div>
               <div class="col md-1" v-show="!checkKuota(room)">
                   <p>full</p>
@@ -77,9 +77,9 @@
         </div>
         <div class="col ml-1">
         <!-- CREATE ROOM -->
-          <div class="row">
-            <form class="bg-dark p-2" style="width:100%" v-on:submit.prevent="createRoom"> 
-              <div class="form-group ">
+          <div class="row p-2">
+            <form class ="bg-dark p-2" style="width:100%" v-on:submit.prevent="createRoom">
+              <div class="form-group">
                 <label for="exampleInputEmail1" style="color:#FEFDFD" >Room</label>
                 <input v-model="roomName" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Room Name">
               </div>
@@ -98,31 +98,33 @@
           </div>
         </div>
       </div>
-      
+       
     </div>
   </div>
-  
 </template>
 
 <script>
 // @ is an alias to /src
+import Room from '@/components/Room.vue'
+
 import Header from '../components/Header'
-import db from "../firebase/firebase.js"
-import { functions } from 'firebase';
+import db from '../db.js'
+import { functions } from 'firebase'
 export default {
   name: 'home',
   data () {
     return {
       username: '',
-      roomName : null,
+      roomName: null,
       totalPlayer: '',
       feedback: null,
       roomList : [],
       newMessage : '',
-      messages : []
+      messages : [],
     }
   },
   components: {
+    Room,
     Header
   },
   methods: {
@@ -145,41 +147,42 @@ export default {
     checkKuota(room) {
       if (room.players.length >= room.kuotaRoom) {
         return false
-      }else 
-      return true
+      } else { return true }
     },
     createRoom() {
       var audio = new Audio('/suicide.mp3')
       audio.play()
       if(this.roomName) {
         this.feedback = ''
-        let kuotaRoom ;
-        if(this.totalPlayer == '1 vs 1'){
+        let kuotaRoom
+        if (this.totalPlayer == '1 vs 1') {
           kuotaRoom = 2
-        }else if (this.totalPlayer == '2 vs 2'){
+        } else if (this.totalPlayer == '2 vs 2') {
           kuotaRoom = 4
-        }else if(this.totalPlayer == '3 vs 3'){
+        } else if (this.totalPlayer == '3 vs 3') {
           kuotaRoom = 9
         }
-        db.collection("room").add({
+        db.collection('room').add({
           name: this.roomName,
           players: [`${this.username}`],
           totalPlayer: this.totalPlayer,
           createdAt: new Date(),
-          kuotaRoom: kuotaRoom
+          kuotaRoom: kuotaRoom,
+          blue: [],
+          red: []
         })
-        .then(docRef=>{
-          this.roomName = null
-          this.totalPlayer = null
-          
-        })
-        .catch(err =>{
-          console.log(err,'eror nya nih')
-        })
-      }else {
+          .then(docRef => {
+            console.log(docRef.id)
+            this.roomName = null
+            this.totalPlayer = null
+            this.$router.push(`/room/${docRef.id}`)
+          })
+          .catch(err => {
+            console.log(err, 'eror nya nih')
+          })
+      } else {
         this.feedback = 'room name needed!'
       }
-     
     },
     getMessage () {
       db.collection('chat').orderBy('createdAt','desc').onSnapshot((querySnapshot)=>{
@@ -201,12 +204,12 @@ export default {
       db.collection('room').orderBy('createdAt').onSnapshot((querySnapshot)=>{
         let allRooms = []
         let count = 0
-        querySnapshot.forEach(doc =>{
+        querySnapshot.forEach(doc => {
           let getRoom = {
             createdAt: doc.data().createdAt,
             name: doc.data().name,
-            totalPlayer: doc.data().totalPlayer,            
-            players : doc.data().players,
+            totalPlayer: doc.data().totalPlayer,
+            players: doc.data().players,
             roomId: doc.id,
             kuotaRoom: doc.data().kuotaRoom
           }
@@ -215,32 +218,35 @@ export default {
         this.roomList = allRooms
       })
     },
-    joinRoom(roomSelected) {
+    joinRoom (roomSelected) {
+      console.log('join rom')
       db.collection('room').doc(roomSelected.roomId).get()
-      .then(doc =>{
-        let newRoom = {
-          createdAt : doc.data().createdAt,
-          name : doc.data().name,
-          players: doc.data().players,
-          totalPlayer: doc.data().totalPlayer,
-          kuotaRoom: doc.data().kuotaRoom
-        }
-        newRoom.players.push(this.username)
-         return db.collection('room').doc(roomSelected.roomId).set({
+        .then(doc => {
+          let newRoom = {
+            createdAt: doc.data().createdAt,
+            name: doc.data().name,
+            players: doc.data().players,
+            totalPlayer: doc.data().totalPlayer,
+            kuotaRoom: doc.data().kuotaRoom
+          }
+          newRoom.players.push(this.username)
+          return db.collection('room').doc(roomSelected.roomId).set({
             ...newRoom
+          })
         })
-      })
-      .then(doc=>{
-        console.log('berhasil join room')
-      })
-      .catch(err =>{
-        console.log(err)
-      })
+        .then(doc => {
+          console.log('berhasil join room')
+          this.$router.push(`/room/${roomSelected.roomId}`)
+        })
+        .catch(err => {
+          console.log(err)
+        })
     }
   },
   created () {
-    var rug = require('random-username-generator');
-    this.username = rug.generate();
+    var rug = require('random-username-generator')
+    localStorage.setItem('username',rug.generate())
+    this.username = localStorage.getItem('username')
     this.fetchRoomList()
     this.getMessage()
     db.collection("user").add({
@@ -253,11 +259,18 @@ export default {
     .catch(err =>{
       console.log(err)
     })
+      .then(docRef => {
+        console.log('add new user')
+        console.log('idUser', docRef.id)
+      })
+      .catch(err => {
+        console.log(err)
+      })
   }
 }
 </script>
 <style>
-  
+
  .container-fluid {
    background-color: #B89E9B
  }
@@ -281,6 +294,5 @@ export default {
     -moz-box-shadow: 0px 0px 5px 2px rgba(255,0,0,1);
     box-shadow: 0px 0px 5px 2px rgba(255,0,0,1);
  }
- 
-</style>
 
+</style>
