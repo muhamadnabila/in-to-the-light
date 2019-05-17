@@ -9,6 +9,8 @@
           <!-- PUBLIC CHAT ROOM -->
           <!-- LALALALALALALA -->
           <!-- PUBLIC CHAT ROOM -->
+          <audio id="sound1" src="../assets/sound/suicide.mp3" preload="auto"></audio>
+          <button onclick="document.getElementById('sound1').play();">Play it</button>
         </div>
       </div>
 
