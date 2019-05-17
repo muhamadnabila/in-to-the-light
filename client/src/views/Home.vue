@@ -3,16 +3,24 @@
   <Header />
     <div class="container mt-4" style="width:70%">
       <h2>Community Activity</h2>
-      <h4>Public chat</h4>
+      <h4 style="color:#525252">Public chat</h4>
+          <!-- PUBLIC CHAT ROOM -->
       <div class="row mt-3">
-        <div class="col" style="height:300px; background-color:#EEC2B6" >
-          <!-- PUBLIC CHAT ROOM -->
-          <!-- LALALALALALALA -->
-          <!-- PUBLIC CHAT ROOM -->
-          <audio id="sound1" src="../assets/sound/suicide.mp3" preload="auto"></audio>
-          <button onclick="document.getElementById('sound1').play();">Play it</button>
+        <div class="col p-2" style="height:300px; background-color:#EEC2B6; overflow:scroll" >
+          <ul class="list-group list-group-flush">
+            <li v-for="(message,index) in messages" :key="index" class="list-group-item">{{message.username}} :> {{ message.message }}</li>
+          </ul>
         </div>
       </div>
+      <div class="row mt-2">
+        <div class="input-group mb-3">
+          <input v-model="newMessage" type="text" class="form-control" placeholder="Input message" aria-label="Recipient's username" aria-describedby="button-addon2">
+          <div class="input-group-append">
+            <button v-on:click="sendMessage" class="btn bg-danger" type="button" id="button-addon2">Send</button>
+          </div>
+        </div>
+      </div>
+          <!-- PUBLIC CHAT ROOM -->
 
       <div id="level" class="row mt-3 mb-0">
       <nav class="navbar navbar-expand-lg navbar-light">
@@ -67,11 +75,11 @@
         </div>
         <!-- ROOM LIST -->
         </div>
-        <div class="col bg-dark ml-1">
+        <div class="col ml-1">
         <!-- CREATE ROOM -->
-          <div class="row p-2">
-            <form style="width:100%" v-on:submit.prevent="createRoom"> 
-              <div class="form-group">
+          <div class="row">
+            <form class="bg-dark p-2" style="width:100%" v-on:submit.prevent="createRoom"> 
+              <div class="form-group ">
                 <label for="exampleInputEmail1" style="color:#FEFDFD" >Room</label>
                 <input v-model="roomName" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Room Name">
               </div>
@@ -109,24 +117,40 @@ export default {
       roomName : null,
       totalPlayer: '',
       feedback: null,
-      roomList : []
+      roomList : [],
+      newMessage : '',
+      messages : []
     }
   },
   components: {
     Header
   },
   methods: {
+    sendMessage () {
+      let username = localStorage.getItem('username')
+      db.collection("chat").add({
+      message: this.newMessage,
+      createdAt: new Date(),
+      username: this.username
+    })
+    .then(docRef =>{
+      console.log('add new message')
+      console.log('idUser', docRef.id)
+      this.newMessage = ''
+    })
+    .catch(err =>{
+      console.log(err)
+    })
+    },
     checkKuota(room) {
-      console.log('================')
-      console.log(room.players)
-      console.log(room.kuotaRoom)
-      console.log('===================')
       if (room.players.length >= room.kuotaRoom) {
         return false
       }else 
       return true
     },
     createRoom() {
+      var audio = new Audio('/suicide.mp3')
+      audio.play()
       if(this.roomName) {
         this.feedback = ''
         let kuotaRoom ;
@@ -156,6 +180,22 @@ export default {
         this.feedback = 'room name needed!'
       }
      
+    },
+    getMessage () {
+      db.collection('chat').orderBy('createdAt','desc').onSnapshot((querySnapshot)=>{
+        let allMsg = []
+        querySnapshot.forEach(doc =>{
+          let getMsg = {
+            createdAt: doc.data().createdAt,
+            message: doc.data().message,
+            username: doc.data().username
+          }
+          allMsg.push(getMsg)
+        })
+        this.messages = allMsg
+        console.log(this.messages)
+      })
+
     },
     fetchRoomList() {
       db.collection('room').orderBy('createdAt').onSnapshot((querySnapshot)=>{
@@ -202,6 +242,7 @@ export default {
     var rug = require('random-username-generator');
     this.username = rug.generate();
     this.fetchRoomList()
+    this.getMessage()
     db.collection("user").add({
       username: this.username,
     })
