@@ -37,9 +37,32 @@
       </div>
           <hr class="mt-0" style="height:2px; color:#1111; background-color:#1111;">
       <div class="row mb-5">
-        <div class="col-8 bg-dark" style="height:200px">
+        <div class="col-8 bg-dark p-2">
         <!-- ROOM LIST -->
-        {{roomList}}
+        <div>
+          <h4 style="color:#FEFDFD">All List Room Available</h4>
+        </div>
+        <div id="listGroup" class="list-group">
+          <a href="#listGroup" v-for="room in roomList" :key="room.roomId" class="list-group-item list-group-item-action list-group-item-danger">
+            <div class="row">
+              <div class="col-6">
+                {{room.name}}
+              </div>
+              <div class="col md-4">
+                 {{ room.totalPlayer }}
+              </div>
+              <div class="col md-1">
+                  <p>{{ room.players.length }}</p>
+              </div>
+              <div class="col md-1" v-show="checkKuota(room)">
+                  <a v-on:click.prevent="joinRoom(room)" href="#"><i class="fas fa-sign-in-alt"></i></a>
+              </div>
+              <div class="col md-1" v-show="!checkKuota(room)">
+                  <p>full</p>
+              </div>
+            </div>
+            </a>
+        </div>
         <!-- ROOM LIST -->
         </div>
         <div class="col bg-dark ml-1">
@@ -47,8 +70,8 @@
           <div class="row p-2">
             <form style="width:100%" v-on:submit.prevent="createRoom"> 
               <div class="form-group">
-                <label for="exampleInputEmail1" style="color:#FEFDFD" >Name Room</label>
-                <input v-model="roomName" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Name Room">
+                <label for="exampleInputEmail1" style="color:#FEFDFD" >Room</label>
+                <input v-model="roomName" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Room Name">
               </div>
                 <label for="exampleInputEmail1" style="color:#FEFDFD">Total Player</label>
               <select v-model="totalPlayer" class="form-control form-control-sm">
@@ -91,21 +114,38 @@ export default {
     Header
   },
   methods: {
+    checkKuota(room) {
+      console.log('================')
+      console.log(room.players)
+      console.log(room.kuotaRoom)
+      console.log('===================')
+      if (room.players.length >= room.kuotaRoom) {
+        return false
+      }else 
+      return true
+    },
     createRoom() {
       if(this.roomName) {
         this.feedback = ''
+        let kuotaRoom ;
+        if(this.totalPlayer == '1 vs 1'){
+          kuotaRoom = 2
+        }else if (this.totalPlayer == '2 vs 2'){
+          kuotaRoom = 4
+        }else if(this.totalPlayer == '3 vs 3'){
+          kuotaRoom = 9
+        }
         db.collection("room").add({
           name: this.roomName,
           players: [`${this.username}`],
           totalPlayer: this.totalPlayer,
-          createdAt: new Date()
+          createdAt: new Date(),
+          kuotaRoom: kuotaRoom
         })
         .then(docRef=>{
-          console.log('berhasil');
           this.roomName = null
           this.totalPlayer = null
           
-          console.log('ini documents id :' ,docRef.id )
         })
         .catch(err =>{
           console.log(err,'eror nya nih')
@@ -118,20 +158,58 @@ export default {
     fetchRoomList() {
       db.collection('room').orderBy('createdAt').onSnapshot((querySnapshot)=>{
         let allRooms = []
+        let count = 0
         querySnapshot.forEach(doc =>{
-          allRooms.push(doc.data())
+          let getRoom = {
+            createdAt: doc.data().createdAt,
+            name: doc.data().name,
+            totalPlayer: doc.data().totalPlayer,            
+            players : doc.data().players,
+            roomId: doc.id,
+            kuotaRoom: doc.data().kuotaRoom
+          }
+          allRooms.push(getRoom)
         })
         this.roomList = allRooms
-        // console.log(allRooms,' ini all rooms dari firestorenya');
-       
+      })
+    },
+    joinRoom(roomSelected) {
+      db.collection('room').doc(roomSelected.roomId).get()
+      .then(doc =>{
+        let newRoom = {
+          createdAt : doc.data().createdAt,
+          name : doc.data().name,
+          players: doc.data().players,
+          totalPlayer: doc.data().totalPlayer,
+          kuotaRoom: doc.data().kuotaRoom
+        }
+        newRoom.players.push(this.username)
+         return db.collection('room').doc(roomSelected.roomId).set({
+            ...newRoom
+        })
+      })
+      .then(doc=>{
+        console.log('berhasil join room')
+      })
+      .catch(err =>{
+        console.log(err)
       })
     }
   },
   created () {
     var rug = require('random-username-generator');
-    var new_username = rug.generate();
-    this.username = new_username
+    this.username = rug.generate();
     this.fetchRoomList()
+    db.collection("user").add({
+      username: this.username,
+    })
+    .then(docRef =>{
+      console.log('add new user')
+      console.log('idUser', docRef.id)
+    })
+    .catch(err =>{
+      console.log(err)
+    })
   }
 }
 </script>
