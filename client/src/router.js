@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-// import Home from './views/Home.vue'
-// import Room from './components/Room.vue'
+import GameWindow from './views/GameWindow'
+
 Vue.use(Router)
 
 export default new Router({
@@ -17,7 +17,12 @@ export default new Router({
       path: '/room/:id',
       name: 'room',
       component: () => import(/* webpackChunkName: "about" */ './components/Room.vue'),
-      props : true,
+      props: true
+    },
+    {
+      path: '/game',
+      name: 'game',
+      component: GameWindow
     }
   ]
 })
