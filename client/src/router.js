@@ -16,11 +16,10 @@ export default new Router({
     {
       path: '/room/:id',
       name: 'room',
-      component: () => import(/* webpackChunkName: "about" */ './components/Room.vue'),
-      props: true
+      component: () => import(/* webpackChunkName: "about" */ './components/Room.vue')
     },
     {
-      path: '/game',
+      path: '/game/:id',
       name: 'game',
       component: GameWindow
     }

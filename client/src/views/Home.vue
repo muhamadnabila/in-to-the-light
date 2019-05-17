@@ -98,18 +98,19 @@
           </div>
         </div>
       </div>
-       
+
     </div>
   </div>
 </template>
 
 <script>
+import axios from 'axios'
 // @ is an alias to /src
 import Room from '@/components/Room.vue'
 
 import Header from '../components/Header'
-import db from '../db.js'
-import { functions } from 'firebase'
+import db from '@/firebase/firebase.js'
+
 export default {
   name: 'home',
   data () {
@@ -227,12 +228,15 @@ export default {
             name: doc.data().name,
             players: doc.data().players,
             totalPlayer: doc.data().totalPlayer,
-            kuotaRoom: doc.data().kuotaRoom
+            kuotaRoom: doc.data().kuotaRoom,
+            blue: doc.data().blue,
+            red: doc.data().red
           }
           newRoom.players.push(this.username)
+          console.log(newRoom.players)
           return db.collection('room').doc(roomSelected.roomId).set({
             ...newRoom
-          })
+          }, { merge: true })
         })
         .then(doc => {
           console.log('berhasil join room')
@@ -245,7 +249,9 @@ export default {
   },
   created () {
     var rug = require('random-username-generator')
-    localStorage.setItem('username',rug.generate())
+    if (!localStorage.getItem('username')) {
+      localStorage.setItem('username',rug.generate())
+    }
     this.username = localStorage.getItem('username')
     this.fetchRoomList()
     this.getMessage()

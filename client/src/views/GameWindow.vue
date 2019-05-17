@@ -30,7 +30,7 @@ import GuessBoard from '@/components/GuessBoard.vue'
 import CharList from '@/components/CharList.vue'
 import QuestionBox from '@/components/QuestionBox.vue'
 
-import db from '@/firestore/db.js'
+import db from '@/firebase/firebase.js'
 
 export default {
   name: 'GameWindow',
@@ -88,15 +88,15 @@ export default {
   methods: {
     fetchJoke: function () {
       db
-        .collection('rooms')
-        .doc(this.user.roomId)
+        .collection('room')
+        .doc(this.$route.params.id)
         .onSnapshot((doc) => {
           let data = doc.data()
-          if (data && Object.keys(data).length) {
+          if (data && Object.keys(data).length && data.question) {
             this.question = data.question
             this.answer = data.answer
-            this.guess = data[this.user.team].guess
-            this.used = data[this.user.team].used
+            this.guess = data[this.user.team+'Game'].guess
+            this.used = data[this.user.team+'Game'].used
           } else {
             axios
               .get('https://official-joke-api.appspot.com/jokes/ten')
@@ -106,14 +106,14 @@ export default {
                 this.answer = joke.punchline.toLowerCase().trim()
                 this.used = Array.from(new Set(this.guess.split('').filter(char => /[a-zA-Z]/gi.test(char))))
 
-                db.collection('rooms').doc(this.user.roomId).set({
+                db.collection('room').doc(this.$route.params.id).set({
                   question: this.question,
                   answer: this.answer,
-                  red: {
+                  redGame: {
                     guess: this.guess,
                     used: this.used
                   },
-                  blue: {
+                  blueGame: {
                     guess: this.guess,
                     used: this.used
                   }
@@ -130,20 +130,17 @@ export default {
       //
       // }
     },
-    generateGuess: function () {
-
-    },
     handleUsed: function ({ val, index }) {
       let docRef = db
-        .collection('rooms')
-        .doc(this.user.roomId)
+        .collection('room')
+        .doc(this.$route.params.id)
 
       docRef
         .get()
         .then(doc => {
           docRef
             .set({
-              [this.user.team]: {
+              [this.user.team+'Game']: {
                 guess: this.guess
                   .split('')
                   .map((char, i) => this.answer[i] === val ? val : char)

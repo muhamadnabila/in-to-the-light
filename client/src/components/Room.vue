@@ -45,7 +45,7 @@
 
 <script>
 console.log("trigerred");
-import db from "@/db.js";
+import db from "@/firebase/firebase.js";
 export default {
   name: "Room",
   data() {
@@ -76,10 +76,15 @@ export default {
         this.players = doc.data().players;
         this.roomId = doc.id;
         this.kuotaRoom = doc.data().kuotaRoom;
-        this.blueTeam = doc.data().blue;
-        this.redTeam = doc.data().red;
-        if(this.players.length == this.kuotaRoom){
-          this.startGame = true
+        if (doc.data().blue) {
+          this.blueTeam = doc.data().blue;
+        }
+        if (doc.data().red) {
+          this.redTeam = doc.data().red;
+        }
+
+        if((this.blueTeam.length + this.redTeam.length) >= this.kuotaRoom){
+          this.$router.push(`/game/${this.$route.params.id}`)
         }
       });
   },
@@ -89,18 +94,20 @@ export default {
           username => this.username !== username
         );
       if (team === "blue") {
+        localStorage.setItem('team', 'blue')
         this.redTeam = this.redTeam.filter(
           username => this.username !== username
         );
         if (this.blueTeam.indexOf(this.username) === -1) {
           this.blueTeam.push(this.username);
         }
-        
+
       } else {
+        localStorage.setItem('team', 'red')
         this.blueTeam = this.blueTeam.filter(
           username => this.username !== username
         );
-        if (this.blueTeam.indexOf(this.username) === -1) {
+        if (this.redTeam.indexOf(this.username) === -1) {
           this.redTeam.push(this.username);
         }
       }
@@ -115,7 +122,7 @@ export default {
             kuotaRoom : this.kuotaRoom,
             blue : this.blueTeam,
             red : this.redTeam,
-          });
+          }, { merge: true });
     }
   }
 };

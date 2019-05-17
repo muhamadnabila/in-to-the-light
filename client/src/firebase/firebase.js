@@ -1,5 +1,6 @@
 import firebase from 'firebase'
-import firestore from 'firebase/firestore'
+import 'firebase/firestore'
+
 var config = {
   apiKey: 'AIzaSyBg_8TGU3DuHGyRkMbqNqSlMq6uHHdhjN8',
   authDomain: 'intothelight-9a98b.firebaseapp.com',
